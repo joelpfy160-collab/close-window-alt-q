@@ -1,48 +1,28 @@
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import Meta from 'gi://Meta';
-import Shell from 'gi://Shell';
+import Gio from 'gi://Gio';
+
+const SCHEMA = 'org.gnome.desktop.wm.keybindings';
+const KEY = 'close';
+const ALT_Q = '<Alt>q';
 
 export default class CloseWindowExtension {
     enable() {
-        this._grabId = global.display.grab_accelerator(
-            '<Alt>q',
-            Meta.KeyBindingFlags.NONE
-        );
+        this._settings = new Gio.Settings({ schema_id: SCHEMA });
+        this._original = this._settings.get_strv(KEY);
 
-        if (this._grabId !== Meta.KeyBindingAction.NONE) {
-            Main.wm.allowKeybinding(
-                'close-current-window',
-                Shell.ActionMode.ALL
-            );
-
-            this._signalId = global.display.connect(
-                'accelerator-activated',
-                (display, action, deviceId, timestamp) => {
-                    if (action === this._grabId) {
-                        this._closeWindow();
-                    }
-                }
-            );
+        // If Alt+Q is not already present, prepend it so Alt+F4 (and others) continue to work
+        if (!this._original.includes(ALT_Q)) {
+            const updated = [ALT_Q, ...this._original];
+            this._settings.set_strv(KEY, updated);
         }
     }
 
     disable() {
-        if (this._signalId) {
-            global.display.disconnect(this._signalId);
-            this._signalId = null;
-        }
+        if (!this._settings)
+            return;
 
-        if (this._grabId !== Meta.KeyBindingAction.NONE) {
-            global.display.ungrab_accelerator(this._grabId);
-            this._grabId = null;
-        }
-    }
-
-    _closeWindow() {
-        let window = global.display.focus_window;
-        
-        if (window && window.can_close()) {
-            window.delete(global.get_current_time());
-        }
+        // Restore the exact original value to avoid surprising the user
+        this._settings.set_strv(KEY, this._original);
+        this._settings = null;
+        this._original = null;
     }
 }
