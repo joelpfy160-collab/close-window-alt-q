@@ -1,0 +1,11 @@
+{
+  "uuid": "close-window-alt-q@cititech.info",
+  "name": "Close Window Alt+Q",
+  "description": "Close the current window using Alt+Q keyboard shortcut. A simple and efficient way to close windows without reaching for Alt+F4 or the mouse.",
+  "version": 1,
+  "url": "https://github.com/yourusername/close-window-alt-q",
+  "shell-version": [
+    "45",
+    "46"
+  ]
+}
